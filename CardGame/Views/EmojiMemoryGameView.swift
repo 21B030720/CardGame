@@ -8,37 +8,41 @@ struct EmojiMemoryGameView: View {
     
     var body: some View {
         VStack {
-            ScrollView {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 80))]) {
-                    ForEach(viewModel.cards) { card in
-                        CardView(card: card)
-                            .aspectRatio(2/3, contentMode: .fit)
-                            .onTapGesture {
-                                viewModel.choose(card)
-                            }
-                    }
-                }
-            }
-            .foregroundColor(.red)
-            
-            Spacer(minLength: 20)
-            
-            HStack {
-                removeButton
-                
-                Spacer()
-                
-                addButton
-            }
-            .foregroundColor(.blue)
-            .font(.largeTitle)
-            .padding(.horizontal)
+            gameBody
+            shuffle
         }
         .padding()
-        
     }
     
+    
     @ViewBuilder
+    
+    var gameBody: some View {
+        AspectVGrid(items: viewModel.cards, aspectRatio: 2/3) { card in
+            if card.isMatched && !card.isFaceUp {
+                Color.clear
+            } else {
+                CardView(card: card)
+                    .padding(4)
+                    .onTapGesture {
+                        withAnimation(.easeInOut(duration: 0.5)) {
+                            viewModel.choose(card)
+                        }
+                    }
+            }
+        }
+        .foregroundColor(.red)
+    }
+    
+    var shuffle: some View {
+        Button("Shuffle") {
+            withAnimation{
+                viewModel.shuffle()
+                
+            }
+        }
+    }
+    
     var removeButton: some View {
         
         Button {
@@ -68,10 +72,13 @@ struct EmojiMemoryGameView: View {
 struct MainView_Previews: PreviewProvider {
     static var previews: some View {
         let game = EmojiMemoryGame()
-        EmojiMemoryGameView(viewModel: game)
+        game.choose(game.cards.first!)
+        
+        return EmojiMemoryGameView(viewModel: game)
             .previewInterfaceOrientation(.portrait)
-        EmojiMemoryGameView(viewModel: game)
-            .previewInterfaceOrientation(.portrait)
-            .preferredColorScheme(.dark)
+        
+//        EmojiMemoryGameView(viewModel: game)
+//            .previewInterfaceOrientation(.portrait)
+//            .preferredColorScheme(.dark)
     }
 }
